@@ -30,7 +30,18 @@ const k = 0.002;
 const velocity = new Vector(0, 0);
 const gravity = new Vector(0, 0.1);
 
-canvas.addEventListener('mousedown', (evt) => {
+let isMouseDown = false;
+
+canvas.addEventListener("mousedown", (evt) => {
+      isMouseDown = true;
+      velocity.mult(0);
+      bob.set(evt.x, evt.y);
+    }
+);
+canvas.addEventListener("mouseup", (e) => isMouseDown = false);
+
+canvas.addEventListener('mousemove', (evt) => {
+  if (!isMouseDown) return;
   velocity.mult(0);
   bob.set(evt.x, evt.y);
 });
@@ -68,20 +79,22 @@ const update = () => {
 
   ctx.restore();
 
-  const force = bob.clone().subVec(anchor);
-  const x = force.len() - restLength; // extension = displacement
-  force.normalize();
-  force.mult(-1 * k * x);
+  if (!isMouseDown) {
+    const force = bob.clone().subVec(anchor);
+    const x = force.len() - restLength; // extension = displacement
+    force.normalize();
+    force.mult(-1 * k * x);
 
 
-  // F = M * A // we set M = 1;
-  // F= A
-  velocity.addVec(force);
-  velocity.addVec(gravity);
-  bob.addVec(velocity);
+    // F = M * A // we set M = 1;
+    // F= A
+    velocity.addVec(force);
+    velocity.addVec(gravity);
+    bob.addVec(velocity);
 
-  // damping
-  velocity.mult(0.99);
+    // damping
+    velocity.mult(0.99);
+  }
 
   updateWorldSettings();
 
