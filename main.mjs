@@ -1,4 +1,6 @@
-import {Vector} from "./vector.mjs";
+import {Vector} from "./js/vector.mjs";
+import {Particle} from "./js/particle.mjs";
+import {Spring} from "./js/spring.mjs";
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext('2d');
@@ -23,34 +25,39 @@ const updateWorldSettings = () => {
 
 updateWorldSettings();
 
-const anchor = new Vector(worldWidth2, worldHeight / 5);
-const bob = anchor.clone().add(100, 250);
-const restLength = 200;
-const k = 0.002;
-const velocity = new Vector(0, 0);
+const anchor = new Particle(new Vector(worldWidth2, worldHeight / 5), {});
+const bob = new Particle(anchor.pos.clone().add(100, 250), {color: 'green'});
+
+const spring = new Spring(0.01, 200, bob, anchor);
+
 const gravity = new Vector(0, 0.1);
 
 let isMouseDown = false;
 
+
 canvas.addEventListener("mousedown", (evt) => {
       isMouseDown = true;
-      velocity.mult(0);
-      bob.set(evt.x, evt.y);
+      bob._velocity.mult(0);
+      bob.pos.set(evt.x, evt.y);
     }
 );
-canvas.addEventListener("mouseup", (e) => isMouseDown = false);
+canvas.addEventListener("mouseup", () => isMouseDown = false);
 
 canvas.addEventListener('mousemove', (evt) => {
   if (!isMouseDown) return;
-  velocity.mult(0);
-  bob.set(evt.x, evt.y);
+  bob._velocity.mult(0);
+  bob.pos.set(evt.x, evt.y);
 });
 
 const update = () => {
 
-  ctx.fillStyle = "red";
+  ctx.fillStyle = "white";
   ctx.strokeStyle = "white";
   ctx.lineWidth = 1;
+  spring.update();
+  if (!isMouseDown)
+    bob.update();
+  anchor.update()
 
   if (worldUpdated) {
     worldUpdated = false;
@@ -59,42 +66,11 @@ const update = () => {
 
   ctx.save();
 
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y);
-  ctx.lineTo(bob.x, bob.y);
-  ctx.stroke();
-
-  // rest (without gravity) would be
-  const rest = bob.clone().subVec(anchor).normalize().mult(restLength);
-  rest.addVec(anchor);
-  ctx.beginPath();
-  ctx.moveTo(anchor.x, anchor.y);
-  ctx.lineTo(rest.x, rest.y);
-  ctx.strokeStyle = "red";
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(bob.x, bob.y, 20, 0, Math.PI * 2);
-  ctx.fill();
+  spring.draw(ctx);
+  anchor.draw(ctx);
+  bob.draw(ctx);
 
   ctx.restore();
-
-  if (!isMouseDown) {
-    const force = bob.clone().subVec(anchor);
-    const x = force.len() - restLength; // extension = displacement
-    force.normalize();
-    force.mult(-1 * k * x);
-
-
-    // F = M * A // we set M = 1;
-    // F= A
-    velocity.addVec(force);
-    velocity.addVec(gravity);
-    bob.addVec(velocity);
-
-    // damping
-    velocity.mult(0.99);
-  }
 
   updateWorldSettings();
 
