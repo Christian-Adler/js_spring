@@ -25,39 +25,47 @@ const updateWorldSettings = () => {
 
 updateWorldSettings();
 
-const anchor = new Particle(new Vector(worldWidth2, worldHeight / 5), {});
-const bob = new Particle(anchor.pos.clone().add(100, 250), {color: 'green'});
+const particles = [];
+const springs = [];
+const spacing = 50;
 
-const spring = new Spring(0.01, 200, bob, anchor);
+for (let i = 0; i < 5; i++) {
+  particles.push(new Particle(new Vector(worldWidth2, worldHeight / 10 + i * spacing), {color: i === 4 ? 'green' : 'red'}));
+}
+for (let i = 1; i < particles.length; i++) {
+  springs.push(new Spring(0.01, spacing * 2, particles[i], particles[i - 1]));
+}
+const bob = particles[particles.length - 1];
 
 const gravity = new Vector(0, 0.1);
 
 let isMouseDown = false;
+let mousePos = new Vector(0, 0);
 
 
-canvas.addEventListener("mousedown", (evt) => {
-      isMouseDown = true;
-      bob._velocity.mult(0);
-      bob.pos.set(evt.x, evt.y);
-    }
-);
+canvas.addEventListener("mousedown", (evt) => isMouseDown = true);
 canvas.addEventListener("mouseup", () => isMouseDown = false);
 
-canvas.addEventListener('mousemove', (evt) => {
+canvas.addEventListener('mousemove', (evt) => mousePos.set(evt.x, evt.y));
+
+const updateBob = () => {
   if (!isMouseDown) return;
   bob._velocity.mult(0);
-  bob.pos.set(evt.x, evt.y);
-});
+  bob.pos.setVec(mousePos);
+}
 
 const update = () => {
 
   ctx.fillStyle = "white";
   ctx.strokeStyle = "white";
   ctx.lineWidth = 1;
-  spring.update();
-  if (!isMouseDown)
-    bob.update();
-  anchor.update()
+
+  updateBob();
+
+  springs.forEach((s) => s.update());
+  particles.forEach((p) => p.update());
+
+  updateBob();
 
   if (worldUpdated) {
     worldUpdated = false;
@@ -66,9 +74,8 @@ const update = () => {
 
   ctx.save();
 
-  spring.draw(ctx);
-  anchor.draw(ctx);
-  bob.draw(ctx);
+  springs.forEach((s) => s.draw(ctx));
+  particles.forEach((p) => p.draw(ctx));
 
   ctx.restore();
 
