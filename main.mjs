@@ -23,12 +23,17 @@ const updateWorldSettings = () => {
 
 updateWorldSettings();
 
-const anchor = new Vector(200, 0);
-let bob = new Vector(290, 250);
-let restLength = 200;
-let k = 0.002;
-let velocity = new Vector(0, 0);
+const anchor = new Vector(worldWidth2, worldHeight / 5);
+const bob = anchor.clone().add(100, 250);
+const restLength = 200;
+const k = 0.002;
+const velocity = new Vector(0, 0);
 const gravity = new Vector(0, 0.1);
+
+canvas.addEventListener('mousedown', (evt) => {
+  velocity.mult(0);
+  bob.set(evt.x, evt.y);
+});
 
 const update = () => {
 
