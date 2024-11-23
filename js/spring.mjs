@@ -21,7 +21,7 @@ class Spring {
     ctx.moveTo(this.a.pos.x, this.a.pos.y);
     ctx.lineTo(this.b.pos.x, this.b.pos.y);
     ctx.strokeStyle = 'white';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
     ctx.stroke();
   }
 }

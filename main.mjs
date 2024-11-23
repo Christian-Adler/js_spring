@@ -25,33 +25,47 @@ const updateWorldSettings = () => {
 
 updateWorldSettings();
 
+const numParticles = 100;
+const spacing = 0.1;
 const particles = [];
 const springs = [];
-const spacing = 50;
+const k = 0.3;
+const damping = 0.99;
+const gravity = new Vector(0, 0.05);
+const showParticles = false;
 
-for (let i = 0; i < 5; i++) {
-  particles.push(new Particle(new Vector(worldWidth2, worldHeight / 10 + i * spacing), {color: i === 4 ? 'green' : 'red'}));
+for (let i = 0; i < numParticles; i++) {
+  particles.push(new Particle(new Vector(worldWidth2, worldHeight / 20 + i * spacing), {damping}));
 }
 for (let i = 1; i < particles.length; i++) {
-  springs.push(new Spring(0.01, spacing * 2, particles[i], particles[i - 1]));
+  springs.push(new Spring(k, spacing, particles[i], particles[i - 1]));
 }
-const bob = particles[particles.length - 1];
 
-const gravity = new Vector(0, 0.1);
+const head = particles[0];
+head._color = 'purple';
+head.locked = true;
+const tail = particles[particles.length - 1];
+tail._color = 'yellow';
+
 
 let isMouseDown = false;
 let mousePos = new Vector(0, 0);
 
 
-canvas.addEventListener("mousedown", (evt) => isMouseDown = true);
-canvas.addEventListener("mouseup", () => isMouseDown = false);
+canvas.addEventListener("mousedown", (evt) => {
+  isMouseDown = true;
+  tail.locked = true;
+});
+canvas.addEventListener("mouseup", () => {
+  isMouseDown = false;
+  tail.locked = false;
+});
 
 canvas.addEventListener('mousemove', (evt) => mousePos.set(evt.x, evt.y));
 
-const updateBob = () => {
-  if (!isMouseDown) return;
-  bob._velocity.mult(0);
-  bob.pos.setVec(mousePos);
+const updateTailByMouse = () => {
+  if (!tail.locked) return;
+  tail.pos.setVec(mousePos);
 }
 
 const update = () => {
@@ -60,12 +74,15 @@ const update = () => {
   ctx.strokeStyle = "white";
   ctx.lineWidth = 1;
 
-  updateBob();
+  updateTailByMouse();
 
   springs.forEach((s) => s.update());
-  particles.forEach((p) => p.update());
+  particles.forEach((p) => {
+    p.applyForce(gravity);
+    p.update();
+  });
 
-  updateBob();
+  updateTailByMouse();
 
   if (worldUpdated) {
     worldUpdated = false;
@@ -75,7 +92,8 @@ const update = () => {
   ctx.save();
 
   springs.forEach((s) => s.draw(ctx));
-  particles.forEach((p) => p.draw(ctx));
+  if (showParticles)
+    particles.forEach((p) => p.draw(ctx));
 
   ctx.restore();
 
