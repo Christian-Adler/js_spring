@@ -23,12 +23,11 @@ const updateWorldSettings = () => {
 
 updateWorldSettings();
 
-const vec1 = new Vector(500, 100);
-const vec2 = new Vector(400, 500);
-let y = 250;
+const anchor = new Vector(200, 0);
+let bob = new Vector(250, 250);
 let restLength = 200;
 let k = 0.001;
-let velocity = 0;
+let velocity = new Vector(0, 0);
 
 const update = () => {
 
@@ -45,32 +44,36 @@ const update = () => {
 
 
   ctx.beginPath();
-  ctx.arc(200, y, 20, 0, Math.PI * 2);
+  ctx.arc(bob.x, bob.y, 20, 0, Math.PI * 2);
   ctx.fill();
 
-  // 
+
   ctx.beginPath();
-  ctx.moveTo(250, 0);
-  ctx.lineTo(250, restLength);
+  ctx.moveTo(anchor.x, anchor.y);
+  ctx.lineTo(anchor.x, anchor.y + restLength);
   ctx.stroke();
+
   ctx.beginPath();
-  ctx.moveTo(254, y);
+  ctx.moveTo(254, bob.y);
   ctx.lineTo(254, restLength);
   ctx.stroke();
 
 
   ctx.restore();
 
-  let x = y - restLength;
-  let force = -k * x;
+  const force = bob.clone().subVec(anchor);
+  const x = force.len() - restLength; // extension = displacement
+  force.normalize();
+  force.mult(-1 * k * x);
+
 
   // F = M * A // we set M = 1;
   // F= A
-  velocity += force;
-  y += velocity;
+  velocity.addVec(force);
+  bob.addVec(velocity);
 
   // damping
-  velocity *= 0.99;
+  velocity.mult(0.99);
 
   updateWorldSettings();
 
