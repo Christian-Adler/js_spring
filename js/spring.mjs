@@ -1,5 +1,6 @@
 class Spring {
-  constructor(k, restLength, a, b) {
+  constructor(id, k, restLength, a, b) {
+    this.id = id;
     this.k = k;
     this.restLength = restLength;
     this.a = a;
@@ -19,9 +20,10 @@ class Spring {
   draw(ctx) {
     ctx.beginPath();
     ctx.moveTo(this.a.pos.x, this.a.pos.y);
+    // direct
     ctx.lineTo(this.b.pos.x, this.b.pos.y);
     ctx.strokeStyle = 'white';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 5;
     ctx.stroke();
   }
 }

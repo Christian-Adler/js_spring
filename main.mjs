@@ -1,6 +1,7 @@
 import {Vector} from "./js/vector.mjs";
 import {Particle} from "./js/particle.mjs";
 import {Spring} from "./js/spring.mjs";
+import {Line} from "./js/line.mjs";
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext('2d');
@@ -25,21 +26,26 @@ const updateWorldSettings = () => {
 
 updateWorldSettings();
 
-const numParticles = 100;
-const spacing = 0.1;
+const numParticles = 50;
+const spacing = 2;
 const particles = [];
 const springs = [];
-const k = 0.3;
+const k = 0.1;
 const damping = 0.99;
-const gravity = new Vector(0, 0.05);
+const gravity = new Vector(0, 0.01);
 const showParticles = false;
 
 for (let i = 0; i < numParticles; i++) {
-  particles.push(new Particle(new Vector(worldWidth2, worldHeight / 20 + i * spacing), {damping}));
+  const particle = new Particle(new Vector(worldWidth2  /*+ spacing * i * i*/, worldHeight / 20 + i * spacing), {damping});
+  // particle.locked = true; // for debug
+  particles.push(particle);
 }
 for (let i = 1; i < particles.length; i++) {
-  springs.push(new Spring(k, spacing, particles[i], particles[i - 1]));
+  const spring = new Spring(`${i}`, k, spacing, particles[i - 1], particles[i]);
+  springs.push(spring);
 }
+
+const line = new Line(particles.map(i => i.pos));
 
 const head = particles[0];
 head._color = 'purple';
@@ -52,7 +58,7 @@ let isMouseDown = false;
 let mousePos = new Vector(0, 0);
 
 
-canvas.addEventListener("mousedown", (evt) => {
+canvas.addEventListener("mousedown", () => {
   isMouseDown = true;
   tail.locked = true;
 });
@@ -91,9 +97,11 @@ const update = () => {
 
   ctx.save();
 
-  springs.forEach((s) => s.draw(ctx));
+  // springs.forEach((s) => s.draw(ctx));
   if (showParticles)
     particles.forEach((p) => p.draw(ctx));
+
+  line.draw(ctx);
 
   ctx.restore();
 
